@@ -1,13 +1,13 @@
 export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
-      const { q, target } = req.body;
+      const { q } = req.body;  
 
-      if (!q || !target) {
-        return res.status(400).json({ error: "Missing q or target" });
+      if (!q) {
+        return res.status(400).json({ error: "Missing q" });
       }
 
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURIComponent(q)}`;
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(q)}`;
       const response = await fetch(url);
       const data = await response.json();
 
