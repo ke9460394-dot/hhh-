@@ -1,22 +1,19 @@
-export default async function handler(req, res) {
-  if (req.method === "POST") {
-    try {
-      const { q } = req.body;  
+export default {
+  async fetch(request) {
+    let { searchParams } = new URL(request.url);
 
-      if (!q) {
-        return res.status(400).json({ error: "Missing q" });
-      }
+    let q = searchParams.get("q") || "";
+    let target = searchParams.get("target") || "zh-CN";
 
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(q)}`;
-      const response = await fetch(url);
-      const data = await response.json();
+    let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURIComponent(q)}`;
 
-      const translated = data[0][0][0];
-      return res.status(200).json({ translatedText: translated });
-    } catch (err) {
-      return res.status(500).json({ error: "Server error", details: err.message });
-    }
-  } else {
-    res.status(405).json({ error: "Method not allowed" });
+    let resp = await fetch(url);
+    let data = await resp.json();
+
+    let translated = data[0][0][0];
+
+    return new Response(JSON.stringify({ translatedText: translated }), {
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }
