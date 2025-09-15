@@ -1,39 +1,22 @@
-export default {
-  async fetch(request, env) {
+export default async function handler(req, res) {
+  if (req.method === "POST") {
     try {
-      if (request.method === "POST") {
-        let { q } = await request.json();
+      const { q, target } = req.body;
 
-        if (!q) {
-          return new Response(
-            JSON.stringify({ error: "Missing q" }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
-          );
-        }
-
-        let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(q)}`;
-        let resp = await fetch(url);
-        let data = await resp.json();
-
-        let translated = data[0][0][0];
-
-        return new Response(JSON.stringify({ translatedText: translated }), {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
-          }
-        });
-      } else {
-        return new Response(
-          JSON.stringify({ error: "Only POST supported" }),
-          { status: 405, headers: { "Content-Type": "application/json" } }
-        );
+      if (!q || !target) {
+        return res.status(400).json({ error: "Missing q or target" });
       }
-    } catch (e) {
-      return new Response(
-        JSON.stringify({ error: e.message }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURIComponent(q)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const translated = data[0][0][0];
+      return res.status(200).json({ translatedText: translated });
+    } catch (err) {
+      return res.status(500).json({ error: "Server error", details: err.message });
     }
+  } else {
+    res.status(405).json({ error: "Method not allowed" });
   }
 }
